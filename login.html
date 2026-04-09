@@ -94,7 +94,7 @@
 <script>
   const btn   = document.getElementById('btn-google-login');
   const errEl = document.getElementById('login-error');
-  let tokenClient;
+  // tokenClient est déclaré dans config.js — pas de redéclaration ici
 
   function showError(msg) { errEl.textContent = msg; errEl.classList.add('visible'); }
   function hideError()    { errEl.classList.remove('visible'); }
