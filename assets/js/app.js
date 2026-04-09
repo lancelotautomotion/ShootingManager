@@ -17,7 +17,12 @@
   const dateEl = document.getElementById('inp-shooting-date');
   const ph     = document.getElementById('date-placeholder');
   if (!dateEl || !ph) return;
-  function syncPH() { ph.style.opacity = dateEl.value ? '0' : '1'; }
+  function syncPH() {
+    ph.style.opacity = dateEl.value ? '0' : '1';
+    // Sync l'attribut HTML pour que le sélecteur CSS :not([value]) soit correct
+    if (dateEl.value) dateEl.setAttribute('value', dateEl.value);
+    else dateEl.removeAttribute('value');
+  }
   dateEl.addEventListener('change', syncPH);
   dateEl.addEventListener('input',  syncPH);
   // Masque le texte natif webkit quand vide
