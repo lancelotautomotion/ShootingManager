@@ -5,7 +5,7 @@
 ================================================================ */
 
 const CONFIG = {
-  CLIENT_ID:        '244908797063-fkd3v7nehp6kcmojvtsqdm189cthhauu.apps.googleusercontent.com',
+  CLIENT_ID:        '782465094651-4pgo2lcmipt0h7g7dr28pngutu3lf3qq.apps.googleusercontent.com',
   SCOPES:           'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata openid profile email',
   DB_FILENAME:      'shooting_manager_db.json',
   ROOT_FOLDER_NAME: 'Shooting Manager',
