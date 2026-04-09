@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#070707">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <title>Connexion — Shooting Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://accounts.google.com/gsi/client"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #070707;
+      --surface: #0f0f0f;
+      --card: #141414;
+      --border: #1e1e1e;
+      --border-lt: #282828;
+      --gold: #c4a46b;
+      --gold-dim: #7a6340;
+      --gold-glow: rgba(196,164,107,.1);
+      --text: #ede8e0;
+      --text-2: #888;
+      --muted: #444;
+      --green: #4d9e6e;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      overflow: hidden;
+    }
+
+    /* ── GRAIN TEXTURE ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: .03;
+    }
+
+    /* ── GLOW ── */
+    .bg-glow {
+      position: fixed;
+      top: -30%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px; height: 900px;
+      background: radial-gradient(circle, rgba(196,164,107,.06) 0%, transparent 60%);
+      pointer-events: none; z-index: 0;
+      animation: glowPulse 6s ease-in-out infinite;
+    }
+    @keyframes glowPulse {
+      0%, 100% { opacity: .6; transform: translateX(-50%) scale(1); }
+      50% { opacity: 1; transform: translateX(-50%) scale(1.05); }
+    }
+
+    /* ── GRID LINES ── */
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.012) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.012) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 0%, transparent 80%);
+    }
+
+    /* ── LAYOUT ── */
+    #login-shell {
+      position: fixed; inset: 0; z-index: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 24px;
+      padding-top: calc(env(safe-area-inset-top, 0px) + 24px);
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+    }
+
+    /* ── BACK LINK (top-left) ── */
+    .back-link {
+      position: fixed;
+      top: calc(env(safe-area-inset-top, 0px) + 20px);
+      left: 24px;
+      z-index: 10;
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+      color: var(--muted); text-decoration: none;
+      transition: color .2s;
+    }
+    .back-link:hover { color: var(--text-2); }
+    .back-link svg { transition: transform .2s; }
+    .back-link:hover svg { transform: translateX(-3px); }
+
+    /* ── CARD ── */
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px 40px 44px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0;
+      box-shadow:
+        0 0 0 1px rgba(196,164,107,.04),
+        0 32px 64px rgba(0,0,0,.6),
+        0 8px 24px rgba(0,0,0,.4);
+      animation: cardIn .6s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(16px) scale(.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ── TOP ORNAMENT ── */
+    .card-ornament {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 32px; width: 100%;
+      justify-content: center;
+    }
+    .orn-line { flex: 1; max-width: 48px; height: 1px; background: var(--border-lt); }
+    .orn-dot { width: 4px; height: 4px; background: var(--gold-dim); transform: rotate(45deg); }
+
+    /* ── WORDMARK ── */
+    .login-wordmark {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 38px; font-weight: 300;
+      line-height: 1.1; letter-spacing: -.01em;
+      text-align: center; margin-bottom: 8px;
+    }
+    .login-wordmark em { font-style: italic; color: var(--gold); }
+
+    .login-tagline {
+      font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 36px; text-align: center;
+    }
+
+    /* ── DIVIDER ── */
+    .login-divider {
+      width: 100%; height: 1px; background: var(--border);
+      margin-bottom: 32px;
+    }
+
+    /* ── DESCRIPTION ── */
+    .login-desc {
+      font-size: 13px; color: var(--text-2); line-height: 1.8;
+      text-align: center; margin-bottom: 28px; max-width: 300px;
+    }
+
+    /* ── GOOGLE BUTTON ── */
+    .btn-google {
+      width: 100%;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      padding: 14px 24px;
+      background: var(--card);
+      border: 1px solid var(--border-lt);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 500; letter-spacing: .02em;
+      color: var(--text);
+      cursor: pointer;
+      transition: background .15s, border-color .15s, transform .15s;
+      -webkit-tap-highlight-color: transparent;
+      position: relative; overflow: hidden;
+    }
+    .btn-google::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(196,164,107,.04) 100%);
+      opacity: 0; transition: opacity .2s;
+    }
+    .btn-google:hover { background: #1a1a1a; border-color: var(--gold-dim); }
+    .btn-google:hover::after { opacity: 1; }
+    .btn-google:active { transform: scale(.98); }
+    .btn-google:disabled { opacity: .5; cursor: not-allowed; }
+
+    .btn-google-icon {
+      width: 18px; height: 18px; flex-shrink: 0;
+    }
+
+    /* Loading state */
+    .btn-google.loading .btn-google-text { opacity: 0; }
+    .btn-google.loading::before {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid var(--border-lt);
+      border-top-color: var(--gold);
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── NOTE ── */
+    .login-note {
+      margin-top: 20px;
+      font-size: 10px; letter-spacing: .08em; color: var(--muted);
+      text-align: center; line-height: 1.7;
+    }
+    .login-note a {
+      color: var(--text-2); text-decoration: none;
+      border-bottom: 1px solid var(--border);
+      transition: color .15s, border-color .15s;
+    }
+    .login-note a:hover { color: var(--text); border-color: var(--border-lt); }
+
+    /* ── FEATURES PILLS ── */
+    .login-features {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      justify-content: center; margin-top: 32px;
+      width: 100%;
+    }
+    .login-feature {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px;
+      background: transparent; border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 9px; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .login-feature-dot {
+      width: 4px; height: 4px; border-radius: 50%;
+      background: var(--green); flex-shrink: 0;
+    }
+
+    /* ── FOOTER ── */
+    .login-footer {
+      position: fixed;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+      left: 50%; transform: translateX(-50%);
+      font-size: 9px; letter-spacing: .22em; text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+      z-index: 1;
+    }
+
+    /* ── ERROR STATE ── */
+    .login-error {
+      width: 100%; margin-top: 14px;
+      padding: 11px 14px;
+      background: rgba(184,92,92,.08); border: 1px solid rgba(184,92,92,.2);
+      border-radius: 8px;
+      font-size: 12px; color: #b85c5c; line-height: 1.5;
+      text-align: center; display: none;
+    }
+    .login-error.visible { display: block; animation: fadeIn .3s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 440px) {
+      .login-card { padding: 36px 24px 32px; border-radius: 14px; }
+      .login-wordmark { font-size: 32px; }
+    }
+    @media (max-width: 360px) {
+      .login-card { padding: 28px 18px 24px; }
+    }
+    @media (min-height: 700px) {
+      .login-card { gap: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+<div class="bg-grid"></div>
+
+<!-- Back to landing -->
+<a href="landing_page_app.html" class="back-link">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M19 12H5M12 5l-7 7 7 7"/>
+  </svg>
+  Retour
+</a>
+
+<!-- Login shell -->
+<div id="login-shell">
+  <div class="login-card">
+
+    <!-- Ornament -->
+    <div class="card-ornament">
+      <div class="orn-line"></div>
+      <div class="orn-dot"></div>
+      <div class="orn-line"></div>
+    </div>
+
+    <!-- Wordmark -->
+    <div class="login-wordmark">Shoot<em>ing</em><br>Manager</div>
+    <div class="login-tagline">Gestion de samples &amp; retours</div>
+
+    <div class="login-divider"></div>
+
+    <!-- Description -->
+    <p class="login-desc">
+      Connectez-vous avec Google pour accéder à vos shootings.<br>
+      Vos données sont stockées dans votre Drive personnel.
+    </p>
+
+    <!-- Google Button -->
+    <button class="btn-google" id="btn-google-login" type="button">
+      <svg class="btn-google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      <span class="btn-google-text">Continuer avec Google</span>
+    </button>
+
+    <!-- Error -->
+    <div class="login-error" id="login-error"></div>
+
+    <!-- Note -->
+    <p class="login-note">
+      Aucune installation · Aucune carte de crédit<br>
+      <a href="landing_page_app.html#features">En savoir plus sur l'app</a>
+    </p>
+
+    <!-- Feature pills -->
+    <div class="login-features">
+      <div class="login-feature">
+        <div class="login-feature-dot"></div>
+        Drive sync
+      </div>
+      <div class="login-feature">
+        <div class="login-feature-dot"></div>
+        Mobile-first
+      </div>
+      <div class="login-feature">
+        <div class="login-feature-dot"></div>
+        Zéro serveur
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="login-footer">LancelotAutomotion · 2025</div>
+
+<script>
+  const CLIENT_ID = '244908797063-fkd3v7nehp6kcmojvtsqdm189cthhauu.apps.googleusercontent.com';
+  const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata openid profile email';
+
+  const btn = document.getElementById('btn-google-login');
+  const errEl = document.getElementById('login-error');
+
+  let tokenClient;
+
+  function showError(msg) {
+    errEl.textContent = msg;
+    errEl.classList.add('visible');
+  }
+  function hideError() {
+    errEl.classList.remove('visible');
+  }
+  function setLoading(on) {
+    btn.classList.toggle('loading', on);
+    btn.disabled = on;
+  }
+
+  function handleToken(resp) {
+    setLoading(false);
+    if (resp.error) {
+      if (resp.error !== 'access_denied') {
+        showError('Erreur de connexion : ' + (resp.error_description || resp.error));
+      }
+      return;
+    }
+    // Store token and redirect to app
+    sessionStorage.setItem('sm_token', resp.access_token);
+    window.location.href = 'shooting-manager.html';
+  }
+
+  function initAuth() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: handleToken,
+    });
+  }
+
+  btn.addEventListener('click', () => {
+    hideError();
+    setLoading(true);
+    try {
+      if (!tokenClient) initAuth();
+      tokenClient.requestAccessToken({ prompt: '' });
+    } catch (e) {
+      setLoading(false);
+      showError('Impossible d\'initialiser la connexion. Rechargez la page.');
+    }
+  });
+
+  // Init on load
+  window.addEventListener('load', () => {
+    try { initAuth(); } catch(e) {}
+
+    // If already logged in, redirect straight to app
+    const saved = sessionStorage.getItem('sm_token');
+    if (saved) {
+      window.location.replace('shooting-manager.html');
+    }
+  });
+</script>
+
+</body>
+</html>

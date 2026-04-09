@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shooting Manager — Pour les assistants stylistes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #070707;
+      --surface: #0f0f0f;
+      --card: #141414;
+      --border: #1e1e1e;
+      --border-lt: #282828;
+      --gold: #c4a46b;
+      --gold-dim: #7a6340;
+      --gold-glow: rgba(196,164,107,.12);
+      --text: #ede8e0;
+      --text-2: #888;
+      --muted: #444;
+      --green: #4d9e6e;
+      --purple: #8b70c4;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 18px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid transparent;
+      transition: border-color .3s, background .3s;
+    }
+    nav.scrolled {
+      background: rgba(7,7,7,.9);
+      border-color: var(--border);
+      backdrop-filter: blur(16px);
+    }
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px; font-weight: 400; letter-spacing: .02em;
+      text-decoration: none; color: var(--text);
+    }
+    .nav-logo em { font-style: italic; color: var(--gold); }
+    .nav-cta {
+      padding: 9px 22px;
+      background: var(--gold); color: #0a0a0a;
+      border-radius: 7px; font-size: 11px; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase;
+      text-decoration: none;
+      transition: opacity .15s;
+    }
+    .nav-cta:hover { opacity: .85; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative; overflow: hidden;
+    }
+
+    /* Grain texture overlay */
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+      background-size: 200px; opacity: .4; pointer-events: none;
+    }
+
+    /* Gold radial glow */
+    .hero::after {
+      content: ''; position: absolute;
+      top: -20%; left: 50%; transform: translateX(-50%);
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(196,164,107,.07) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .hero-eyebrow {
+      font-size: 9px; letter-spacing: .32em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 28px;
+      display: flex; align-items: center; gap: 12px;
+      animation: fadeUp .8s ease both;
+    }
+    .hero-eyebrow::before, .hero-eyebrow::after {
+      content: ''; display: block; width: 28px; height: 1px; background: var(--gold-dim);
+    }
+
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(52px, 8vw, 96px);
+      font-weight: 300; line-height: 1.05; letter-spacing: -.01em;
+      margin-bottom: 28px;
+      animation: fadeUp .8s .1s ease both;
+    }
+    .hero-title em { font-style: italic; color: var(--gold); }
+    .hero-title strong { font-weight: 600; }
+
+    .hero-sub {
+      max-width: 540px;
+      font-size: 16px; color: var(--text-2); line-height: 1.8;
+      margin-bottom: 48px;
+      animation: fadeUp .8s .2s ease both;
+    }
+
+    .hero-actions {
+      display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+      animation: fadeUp .8s .3s ease both;
+    }
+    .btn-hero-primary {
+      padding: 16px 36px;
+      background: var(--gold); color: #0a0a0a;
+      border-radius: 8px; font-size: 11px; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      text-decoration: none; transition: opacity .15s, transform .15s;
+    }
+    .btn-hero-primary:hover { opacity: .88; transform: translateY(-1px); }
+    .btn-hero-secondary {
+      padding: 16px 36px;
+      background: transparent; color: var(--text-2);
+      border: 1px solid var(--border-lt); border-radius: 8px;
+      font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase;
+      text-decoration: none; transition: border-color .15s, color .15s;
+    }
+    .btn-hero-secondary:hover { border-color: var(--gold-dim); color: var(--text); }
+
+    /* ── SCROLL INDICATOR ── */
+    .scroll-indicator {
+      position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      font-size: 8px; letter-spacing: .26em; text-transform: uppercase; color: var(--muted);
+      animation: fadeUp .8s .6s ease both;
+    }
+    .scroll-line {
+      width: 1px; height: 36px;
+      background: linear-gradient(to bottom, var(--gold-dim), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+    @keyframes scrollPulse {
+      0%, 100% { opacity: .4; transform: scaleY(1); transform-origin: top; }
+      50% { opacity: 1; }
+    }
+
+    /* ── MARQUEE STRIP ── */
+    .marquee-strip {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 0; overflow: hidden; background: var(--surface);
+    }
+    .marquee-track {
+      display: flex; gap: 0;
+      animation: marquee 28s linear infinite;
+      width: max-content;
+    }
+    .marquee-track:hover { animation-play-state: paused; }
+    .marquee-item {
+      padding: 0 32px;
+      font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+      color: var(--muted); white-space: nowrap;
+      display: flex; align-items: center; gap: 32px;
+    }
+    .marquee-item::after {
+      content: '·'; color: var(--gold-dim); font-size: 14px; margin-left: 0;
+    }
+    @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    /* ── SECTION ── */
+    .section { padding: 100px 24px; max-width: 1100px; margin: 0 auto; }
+    .section-eyebrow {
+      font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(36px, 4vw, 54px); font-weight: 300; line-height: 1.15;
+      letter-spacing: .01em; margin-bottom: 20px;
+    }
+    .section-title em { font-style: italic; color: var(--gold); }
+    .section-body {
+      font-size: 15px; color: var(--text-2); line-height: 1.9; max-width: 520px;
+    }
+
+    /* ── FEATURES GRID ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+      margin-top: 64px;
+    }
+    .feature-card {
+      background: var(--card); padding: 36px 32px;
+      transition: background .2s;
+    }
+    .feature-card:hover { background: var(--surface); }
+    .feature-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--gold-glow); border: 1px solid var(--gold-dim);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+    }
+    .feature-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 11px; letter-spacing: .2em; color: var(--gold);
+      margin-bottom: 10px;
+    }
+    .feature-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-weight: 400; margin-bottom: 10px; line-height: 1.2;
+    }
+    .feature-desc { font-size: 13px; color: var(--text-2); line-height: 1.8; }
+
+    /* ── WORKFLOW ── */
+    .workflow-section {
+      padding: 100px 24px; background: var(--surface);
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .workflow-inner { max-width: 1100px; margin: 0 auto; }
+    .workflow-steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0; margin-top: 64px; position: relative;
+    }
+    .workflow-steps::before {
+      content: ''; position: absolute;
+      top: 28px; left: 0; right: 0; height: 1px;
+      background: linear-gradient(to right, transparent, var(--border-lt), var(--border-lt), transparent);
+    }
+    .step {
+      padding: 0 28px 0 0; position: relative;
+    }
+    .step-num {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--bg); border: 1px solid var(--border-lt);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px; font-weight: 300; color: var(--gold);
+      margin-bottom: 24px; position: relative; z-index: 1;
+    }
+    .step-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 19px; font-weight: 400; margin-bottom: 8px;
+    }
+    .step-desc { font-size: 12px; color: var(--text-2); line-height: 1.8; }
+
+    /* ── APP PREVIEW ── */
+    .preview-section { padding: 100px 24px; max-width: 1100px; margin: 0 auto; }
+    .preview-frame {
+      margin-top: 64px;
+      border: 1px solid var(--border-lt);
+      border-radius: 16px; overflow: hidden;
+      background: var(--surface);
+      position: relative;
+    }
+    .preview-topbar {
+      background: var(--card); border-bottom: 1px solid var(--border);
+      padding: 14px 20px; display: flex; align-items: center; gap: 10px;
+    }
+    .preview-dots { display: flex; gap: 6px; }
+    .preview-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border-lt); }
+    .preview-url {
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 5px 14px;
+      font-size: 11px; color: var(--muted); letter-spacing: .04em;
+      margin: 0 12px;
+    }
+    .preview-body {
+      padding: 28px; display: grid;
+      grid-template-columns: 260px 1fr; gap: 1px;
+      background: var(--border); min-height: 380px;
+    }
+    .preview-left { background: var(--card); padding: 20px; }
+    .preview-right { background: var(--surface); padding: 20px; }
+    .preview-label {
+      font-size: 8px; letter-spacing: .26em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 14px;
+    }
+    .preview-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;
+      cursor: default;
+    }
+    .preview-card.active { border-color: var(--gold-dim); background: var(--card); }
+    .preview-card-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 15px; margin-bottom: 3px;
+    }
+    .preview-card-meta { font-size: 10px; color: var(--text-2); }
+    .preview-brand-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 14px; margin-bottom: 6px;
+    }
+    .preview-brand-name {
+      font-family: 'Cormorant Garamond', serif; font-size: 16px;
+    }
+    .preview-tag {
+      padding: 2px 9px; border-radius: 20px; font-size: 8px;
+      font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    }
+    .tag-c { background: #0a1a10; color: #4d9e6e; }
+    .tag-d { background: #120e1f; color: #8b70c4; }
+    .tag-r { background: #0a1a10; color: #4d9e6e; }
+    .tag-w { background: #180707; color: #b85c5c; }
+    .preview-photo-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 12px;
+    }
+    .preview-photo-thumb {
+      aspect-ratio: 1; border-radius: 4px; background: var(--border);
+      overflow: hidden; position: relative;
+    }
+    .preview-photo-inner {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, var(--border-lt) 0%, var(--muted) 100%);
+      opacity: .35;
+    }
+
+    /* ── STATS ── */
+    .stats-section {
+      padding: 80px 24px;
+      border-top: 1px solid var(--border);
+    }
+    .stats-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    }
+    .stat-item { background: var(--card); padding: 40px 32px; }
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 52px; font-weight: 300; color: var(--gold); line-height: 1;
+      margin-bottom: 8px;
+    }
+    .stat-label { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-2); }
+
+    /* ── TESTIMONIAL ── */
+    .quote-section {
+      padding: 100px 24px; text-align: center;
+      background: var(--surface);
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .quote-mark {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 80px; font-weight: 300; color: var(--gold-dim);
+      line-height: .6; margin-bottom: 24px; display: block;
+    }
+    .quote-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(22px, 3vw, 32px); font-weight: 300;
+      font-style: italic; color: var(--text);
+      max-width: 700px; margin: 0 auto 28px; line-height: 1.6;
+    }
+    .quote-author {
+      font-size: 10px; letter-spacing: .24em; text-transform: uppercase; color: var(--muted);
+    }
+
+    /* ── CTA FINAL ── */
+    .cta-section {
+      padding: 120px 24px; text-align: center;
+    }
+    .cta-inner { max-width: 600px; margin: 0 auto; }
+    .cta-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(40px, 5vw, 64px); font-weight: 300;
+      line-height: 1.1; margin-bottom: 24px;
+    }
+    .cta-title em { font-style: italic; color: var(--gold); }
+    .cta-sub { font-size: 14px; color: var(--text-2); margin-bottom: 40px; line-height: 1.8; }
+    .cta-btn {
+      display: inline-flex; align-items: center; gap: 12px;
+      padding: 18px 44px;
+      background: var(--gold); color: #0a0a0a;
+      border-radius: 8px; font-size: 11px; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      text-decoration: none; transition: opacity .15s, transform .15s;
+    }
+    .cta-btn:hover { opacity: .88; transform: translateY(-2px); }
+    .cta-note {
+      margin-top: 18px; font-size: 11px; color: var(--muted);
+      letter-spacing: .06em;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .footer-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 17px; color: var(--text-2); text-decoration: none;
+    }
+    .footer-logo em { font-style: italic; color: var(--gold-dim); }
+    .footer-copy {
+      font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+    }
+
+    /* ── DIVIDER ── */
+    .ornament {
+      display: flex; align-items: center; gap: 14px;
+      justify-content: center; padding: 0 24px;
+    }
+    .ornament-line { flex: 1; max-width: 80px; height: 1px; background: var(--border-lt); }
+    .ornament-diamond {
+      width: 5px; height: 5px; background: var(--gold-dim);
+      transform: rotate(45deg);
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 680px) {
+      nav { padding: 16px 20px; }
+      .hero { padding: 100px 20px 70px; }
+      .hero-title { font-size: clamp(44px, 11vw, 64px); }
+      .hero-sub { font-size: 14px; }
+      .hero-actions { flex-direction: column; align-items: stretch; }
+      .btn-hero-primary, .btn-hero-secondary { justify-content: center; }
+      .section { padding: 72px 20px; }
+      .workflow-section { padding: 72px 20px; }
+      .workflow-steps::before { display: none; }
+      .step { padding: 0 0 40px 0; }
+      .preview-section { padding: 72px 20px; }
+      .preview-body { grid-template-columns: 1fr; }
+      .preview-left { display: none; }
+      .stats-section { padding: 56px 20px; }
+      .stats-inner { grid-template-columns: repeat(2, 1fr); border-radius: 10px; }
+      .stat-item { padding: 28px 20px; }
+      .stat-num { font-size: 40px; }
+      .quote-section { padding: 72px 20px; }
+      .cta-section { padding: 80px 20px; }
+      .cta-btn { width: 100%; justify-content: center; }
+      footer { padding: 24px 20px; flex-direction: column; align-items: flex-start; gap: 14px; }
+    }
+    @media (max-width: 400px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .stats-inner { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">Shoot<em>ing</em> Manager</a>
+  <a href="login.html" class="nav-cta">Accéder à l'app</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">Pour les assistants stylistes</div>
+  <h1 class="hero-title">
+    Gérez vos<br><em>samples</em> &amp;<br><strong>retours</strong><br>sans friction.
+  </h1>
+  <p class="hero-sub">
+    Du premier colis reçu jusqu'au dernier coursier parti — chaque marque, chaque photo, chaque adresse de retour, synchronisés dans votre Google Drive.
+  </p>
+  <div class="hero-actions">
+    <a href="login.html" class="btn-hero-primary">Commencer maintenant</a>
+    <a href="#features" class="btn-hero-secondary">Découvrir</a>
+  </div>
+  <div class="scroll-indicator">
+    <div class="scroll-line"></div>
+    Défiler
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-strip">
+  <div class="marquee-track" id="marquee-track"></div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="reveal">
+    <div class="section-eyebrow">Fonctionnalités</div>
+    <h2 class="section-title">Tout ce qu'il faut,<br><em>rien de superflu.</em></h2>
+    <p class="section-body">
+      Conçu pour le terrain — une ouverture de colis, un coup de téléphone, un plateau entier à gérer. L'app suit le rythme.
+    </p>
+  </div>
+  <div class="features-grid reveal">
+    <div class="feature-card">
+      <div class="feature-num">01</div>
+      <div class="feature-title">Shootings &amp; marques</div>
+      <p class="feature-desc">Organisez vos missions en shootings. Pour chaque shooting, ajoutez vos marques avec leur type de retour — coursier ou drop — et leur adresse.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">02</div>
+      <div class="feature-title">Check In / Check Out</div>
+      <p class="feature-desc">Photographiez les colis à l'arrivée et au départ. Les thumbnails sont générés en local, instantanément. Les originaux vont directement dans votre Drive.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">03</div>
+      <div class="feature-title">Sync Google Drive</div>
+      <p class="feature-desc">Aucun serveur tiers. Vos données vivent dans votre Google Drive personnel — dossier racine créé automatiquement, accessible depuis n'importe où.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">04</div>
+      <div class="feature-title">Filtres &amp; statuts</div>
+      <p class="feature-desc">Filtrez par type de retour ou par statut de réception. D'un coup d'œil : qui a son colis, qui attend encore, qui part en coursier ce soir.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">05</div>
+      <div class="feature-title">Mobile-first</div>
+      <p class="feature-desc">Pensé pour le téléphone, sur un plateau. Interface sombre pour ne pas éblouir, gestes natifs, safe-area iOS, mode clair disponible.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">06</div>
+      <div class="feature-title">Zéro installation</div>
+      <p class="feature-desc">Une page web, un compte Google. Pas d'app store, pas de mise à jour à gérer. Accessible depuis iOS, Android, ou un navigateur desktop.</p>
+    </div>
+  </div>
+</section>
+
+<!-- WORKFLOW -->
+<section class="workflow-section">
+  <div class="workflow-inner">
+    <div class="reveal">
+      <div class="section-eyebrow">Workflow</div>
+      <h2 class="section-title">Du booking à la<br><em>restitution.</em></h2>
+    </div>
+    <div class="workflow-steps reveal">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-title">Créez le shooting</div>
+        <p class="step-desc">Nommez la mission, ajoutez la date. Un dossier Drive est créé automatiquement.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-title">Ajoutez les marques</div>
+        <p class="step-desc">Pour chaque maison : type de retour, adresse, sous-dossiers check in / check out créés.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-title">Photographiez</div>
+        <p class="step-desc">À la réception et au départ. Photos uploadées dans Drive, thumbnails visibles instantanément.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-title">Suivez les retours</div>
+        <p class="step-desc">Marquez les colis reçus, suivez coursiers et drops, filtrez par statut en un tap.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APP PREVIEW -->
+<section class="preview-section" id="app-preview">
+  <div class="reveal">
+    <div class="section-eyebrow">Interface</div>
+    <h2 class="section-title">Sobre.<br><em>Précis.</em> Efficace.</h2>
+  </div>
+  <div class="preview-frame reveal">
+    <div class="preview-topbar">
+      <div class="preview-dots">
+        <div class="preview-dot"></div>
+        <div class="preview-dot"></div>
+        <div class="preview-dot"></div>
+      </div>
+      <div class="preview-url">shooting-manager.app</div>
+    </div>
+    <div style="padding:0; background:var(--bg)">
+      <div style="display:grid;grid-template-columns:280px 1fr;min-height:360px;background:var(--border);gap:1px">
+        <!-- Left: shootings list -->
+        <div style="background:var(--bg);padding:20px 16px">
+          <div style="font-size:8px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;padding:0 2px;display:flex;justify-content:space-between;align-items:center">
+            <span>3 shootings</span>
+            <span style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2px 8px;color:var(--green);font-size:7px">● Drive</span>
+          </div>
+          <div class="preview-card active">
+            <div class="preview-card-name">ELLE Arabia</div>
+            <div class="preview-card-meta">12 marques · 14 mars 2025</div>
+          </div>
+          <div class="preview-card">
+            <div class="preview-card-name">Vogue Paris</div>
+            <div class="preview-card-meta">8 marques · 3 mars 2025</div>
+          </div>
+          <div class="preview-card">
+            <div class="preview-card-name">Harper's Bazaar</div>
+            <div class="preview-card-meta">5 marques · 18 fév. 2025</div>
+          </div>
+        </div>
+        <!-- Right: brands list -->
+        <div style="background:var(--surface);padding:20px 16px">
+          <div style="font-size:8px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);margin-bottom:14px">ELLE Arabia · 12 marques</div>
+          <div style="display:flex;gap:5px;margin-bottom:14px">
+            <span style="background:var(--gold);color:#0a0a0a;padding:3px 10px;border-radius:20px;font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase">Tout</span>
+            <span style="border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:20px;font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase">Coursier</span>
+            <span style="border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:20px;font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase">Drop</span>
+            <span style="border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:20px;font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase">Reçu</span>
+          </div>
+          <div class="preview-brand-row">
+            <div class="preview-brand-name">LANVIN</div>
+            <div style="display:flex;gap:5px"><span class="preview-tag tag-c">Coursier</span><span class="preview-tag tag-r">Reçu</span></div>
+          </div>
+          <div class="preview-brand-row">
+            <div class="preview-brand-name">Drôle de Monsieur</div>
+            <div style="display:flex;gap:5px"><span class="preview-tag tag-d">Drop</span><span class="preview-tag tag-w">En attente</span></div>
+          </div>
+          <div class="preview-brand-row">
+            <div class="preview-brand-name">Jacquemus</div>
+            <div style="display:flex;gap:5px"><span class="preview-tag tag-c">Coursier</span><span class="preview-tag tag-r">Reçu</span></div>
+          </div>
+          <div class="preview-brand-row">
+            <div class="preview-brand-name">AMI Paris</div>
+            <div style="display:flex;gap:5px"><span class="preview-tag tag-d">Drop</span><span class="preview-tag tag-r">Reçu</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-section">
+  <div class="stats-inner reveal">
+    <div class="stat-item">
+      <div class="stat-num">0</div>
+      <div class="stat-label">Serveur tiers. Vos données vous appartiennent.</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">∞</div>
+      <div class="stat-label">Shootings et marques. Sans limite.</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">1</div>
+      <div class="stat-label">Connexion Google suffit. C'est tout.</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">iOS</div>
+      <div class="stat-label">Android, desktop. Partout, toujours.</div>
+    </div>
+  </div>
+</div>
+
+<!-- QUOTE -->
+<section class="quote-section">
+  <div class="reveal">
+    <span class="quote-mark">"</span>
+    <p class="quote-text">
+      Sur un plateau, on n'a pas le temps de chercher dans ses notes. Il faut savoir immédiatement qui attend son colis, qui part en coursier, et où.
+    </p>
+    <div class="quote-author">L'assistant styliste moderne</div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-section" id="app">
+  <div class="cta-inner reveal">
+    <div class="ornament" style="margin-bottom:40px">
+      <div class="ornament-line"></div>
+      <div class="ornament-diamond"></div>
+      <div class="ornament-line"></div>
+    </div>
+    <h2 class="cta-title">Prêt à démarrer<br>votre prochain <em>shooting</em>&nbsp;?</h2>
+    <p class="cta-sub">Connectez-vous avec Google en un clic. Aucune installation, aucun abonnement. Vos données restent dans votre Drive.</p>
+    <a href="login.html" class="cta-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Se connecter avec Google
+    </a>
+    <p class="cta-note">Aucune carte de crédit · Données stockées dans votre Drive</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <a href="#" class="footer-logo">Shoot<em>ing</em> Manager</a>
+  <div class="footer-copy">Lancelot · 2025 · v5.0</div>
+  <a href="index.html" style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color .2s" onmouseover="this.style.color='var(--text-2)'" onmouseout="this.style.color='var(--muted)'">lancelotautomotion.fr</a>
+</footer>
+
+<script>
+  // Nav scroll state
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 40);
+  }, { passive: true });
+
+  // Marquee content
+  const items = ['Samples', 'Check In', 'Check Out', 'Coursier', 'Drop', 'Google Drive', 'Retours', 'Shooting', 'Marques', 'Adresses', 'Photos', 'Sync'];
+  const track = document.getElementById('marquee-track');
+  const html = items.map(i => `<div class="marquee-item">${i}</div>`).join('');
+  track.innerHTML = html + html; // duplicate for seamless loop
+
+  // Reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
