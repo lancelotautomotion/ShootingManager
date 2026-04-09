@@ -1,0 +1,48 @@
+/* ================================================================
+   SHOOTING MANAGER — Design Tokens
+   Source de vérité unique pour toute la palette app (dark/light).
+   Importé en premier par app.html et login.html.
+   La landing page (index.html) a sa propre palette claire.
+================================================================ */
+
+:root, [data-theme="dark"] {
+  --bg:        #070707;
+  --surface:   #0f0f0f;
+  --card:      #141414;
+  --border:    #1e1e1e;
+  --border-lt: #282828;
+  --gold:      #c4a46b;
+  --gold-dim:  #7a6340;
+  --gold-glow: rgba(196,164,107,.1);
+  --text:      #ede8e0;
+  --text-2:    #888;
+  --muted:     #444;
+  --muted2:    #2a2a2a;
+  --green-bg:  #0a1a10;
+  --green:     #4d9e6e;
+  --purple-bg: #120e1f;
+  --purple:    #8b70c4;
+  --red:       #b85c5c;
+  --red-bg:    #180707;
+}
+
+[data-theme="light"] {
+  --bg:        #f4f0ea;
+  --surface:   #ece7de;
+  --card:      #e6e0d7;
+  --border:    #d2cabb;
+  --border-lt: #c8c0b0;
+  --gold:      #a07828;
+  --gold-dim:  #c49040;
+  --gold-glow: rgba(160,120,40,.1);
+  --text:      #18150f;
+  --text-2:    #5a5248;
+  --muted:     #8a8070;
+  --muted2:    #bbb0a0;
+  --green-bg:  #d0ead8;
+  --green:     #2a6e44;
+  --purple-bg: #e0d8f0;
+  --purple:    #5030a0;
+  --red:       #902828;
+  --red-bg:    #f0e0e0;
+}

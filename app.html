@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#070707" id="meta-theme">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <title>Shooting Manager</title>
+
+  <!-- Content Security Policy (STORY 2.1) -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src  'self' 'unsafe-inline' https://accounts.google.com https://apis.google.com;
+    style-src   'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src    https://fonts.gstatic.com;
+    connect-src 'self' https://www.googleapis.com https://accounts.google.com;
+    img-src     'self' data: blob: https://lh3.googleusercontent.com;
+    frame-src   https://accounts.google.com;
+  ">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Design system -->
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+
+  <!-- Évite le FOUC en appliquant le thème avant le premier paint -->
+  <script>
+    (function() {
+      var t = localStorage.getItem('sm_theme');
+      if (t) document.documentElement.setAttribute('data-theme', t);
+    }());
+  </script>
+
+  <!-- Google Sign-In SDK (sans async/defer pour éviter l'iframe GSI invisible) -->
+  <script src="https://accounts.google.com/gsi/client"></script>
+</head>
+<body>
+
+<div id="app-shell">
+<div id="app-panel">
+
+<!-- ============================================================ LOGIN -->
+<div id="screen-login" class="screen active">
+  <div class="login-inner">
+    <div>
+      <div class="login-wordmark">Shoot<em>ing</em><br>Manager</div>
+      <div class="login-sub">Gestion de samples &amp; retours</div>
+    </div>
+    <div class="login-rule"></div>
+    <p class="login-desc">Connectez-vous avec Google pour accéder à vos shootings.<br>Vos données sont stockées dans votre Drive personnel.</p>
+    <button class="btn-google" id="btn-google-login">
+      <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Se connecter avec Google
+    </button>
+    <div class="login-footer">LancelotAutomotion</div>
+  </div>
+</div>
+
+<!-- ============================================================ SHOOTINGS -->
+<div id="screen-shootings" class="screen">
+  <div class="topbar">
+    <div class="topbar-title">Shoot<em>ings</em></div>
+    <div id="btn-open-profile" class="topbar-avatar" role="button" aria-label="Profil">
+      <img id="topbar-avatar-img" src="" alt="" style="display:none">
+      <span id="topbar-avatar-initials" aria-hidden="true"></span>
+    </div>
+  </div>
+  <div class="scroll-area">
+    <div class="section-header">
+      <div class="section-label" id="shootings-count">0 shooting</div>
+      <div class="sync-badge">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span id="sync-label">Drive</span>
+      </div>
+    </div>
+    <div class="swipe-hint" id="swipe-hint">Glisser à gauche pour supprimer</div>
+    <div id="shootings-list"></div>
+  </div>
+  <div class="fab" id="btn-new-shooting" role="button" aria-label="Nouveau shooting">
+    <svg class="icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <line x1="9" y1="2" x2="9" y2="16" stroke="#0a0a0a" stroke-width="2" stroke-linecap="round"/>
+      <line x1="2" y1="9" x2="16" y2="9" stroke="#0a0a0a" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ============================================================ BRANDS -->
+<div id="screen-brands" class="screen">
+  <div class="topbar">
+    <div class="topbar-back" id="btn-back-brands" role="button" aria-label="Retour">
+      <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <polyline points="10,3 4,8 10,13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="topbar-title" id="brands-shooting-name">Shooting</div>
+  </div>
+  <div class="filter-bar" role="group" aria-label="Filtres">
+    <button class="filter-pill active" data-filter="all">Tout</button>
+    <button class="filter-pill" data-filter="coursier">Coursier</button>
+    <button class="filter-pill" data-filter="drop">Drop</button>
+    <button class="filter-pill" data-filter="received">Reçu</button>
+    <button class="filter-pill" data-filter="pending">En attente</button>
+  </div>
+  <div class="scroll-area">
+    <div class="section-header">
+      <div class="section-label" id="brands-count">0 marque</div>
+    </div>
+    <div id="brands-list"></div>
+  </div>
+  <div class="fab" id="btn-new-brand" role="button" aria-label="Ajouter une marque">
+    <svg class="icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <line x1="9" y1="2" x2="9" y2="16" stroke="#0a0a0a" stroke-width="2" stroke-linecap="round"/>
+      <line x1="2" y1="9" x2="16" y2="9" stroke="#0a0a0a" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ============================================================ BRAND DETAIL -->
+<div id="screen-brand" class="screen">
+  <div class="topbar">
+    <div class="topbar-back" id="btn-back-brand" role="button" aria-label="Retour">
+      <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <polyline points="10,3 4,8 10,13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="topbar-title" id="brand-detail-topbar">Marque</div>
+  </div>
+  <div class="scroll-area">
+    <div class="brand-hero">
+      <div class="brand-controls">
+        <button class="ctrl-btn" id="ctrl-coursier">Coursier</button>
+        <button class="ctrl-btn" id="ctrl-drop">Drop</button>
+        <button class="ctrl-btn" id="ctrl-recv">Colis reçu ?</button>
+      </div>
+    </div>
+
+    <div class="address-block" id="address-block">
+      <div class="address-label">Adresse de retour</div>
+      <a id="maps-link" class="maps-link" target="_blank" rel="noopener noreferrer" href="#">
+        <div class="address-line" id="addr-line1">—</div>
+        <div class="address-line" id="addr-line2">—</div>
+        <div class="maps-hint">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <path d="M1 1h8v8M1 9L9 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Itinéraire
+        </div>
+      </a>
+    </div>
+
+    <!-- Check In -->
+    <div class="photo-section">
+      <div class="photo-section-hd">
+        <span style="letter-spacing:.22em">Check In</span>
+        <span id="ci-count">0 photo</span>
+      </div>
+      <div class="photo-grid" id="ci-grid"></div>
+      <label class="upload-btn">
+        <input type="file" id="upload-ci" accept="image/*" multiple>
+        <svg class="icon" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <line x1="7" y1="1" x2="7" y2="13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="1" y1="7" x2="13" y2="7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        Ajouter des photos
+      </label>
+      <a id="ci-drive-link" class="drive-link" target="_blank" rel="noopener noreferrer" href="#" style="display:none">
+        <svg class="icon" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path d="M5 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          <path d="M8 1h3v3M11 1L5.5 6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Ouvrir dans Drive
+      </a>
+    </div>
+
+    <!-- Check Out -->
+    <div class="photo-section">
+      <div class="photo-section-hd">
+        <span style="letter-spacing:.22em">Check Out</span>
+        <span id="co-count">0 photo</span>
+      </div>
+      <div class="photo-grid" id="co-grid"></div>
+      <label class="upload-btn">
+        <input type="file" id="upload-co" accept="image/*" multiple>
+        <svg class="icon" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <line x1="7" y1="1" x2="7" y2="13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="1" y1="7" x2="13" y2="7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        Ajouter des photos
+      </label>
+      <a id="co-drive-link" class="drive-link" target="_blank" rel="noopener noreferrer" href="#" style="display:none">
+        <svg class="icon" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path d="M5 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          <path d="M8 1h3v3M11 1L5.5 6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Ouvrir dans Drive
+      </a>
+    </div>
+
+    <!-- Preuve de retour -->
+    <div class="photo-section">
+      <div class="photo-section-hd">
+        <span style="letter-spacing:.22em">Preuve de retour</span>
+        <span id="rp-count">0 photo</span>
+      </div>
+      <div class="photo-grid" id="rp-grid"></div>
+      <label class="upload-btn">
+        <input type="file" id="upload-rp" accept="image/*" capture="environment">
+        <svg class="icon" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M1 5.5l2.5-3.5h7L13 5.5v5a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+          <circle cx="7" cy="8" r="2" stroke="currentColor" stroke-width="1.4"/>
+        </svg>
+        Prendre / ajouter une photo
+      </label>
+      <a id="rp-drive-link" class="drive-link" target="_blank" rel="noopener noreferrer" href="#" style="display:none">
+        <svg class="icon" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path d="M5 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          <path d="M8 1h3v3M11 1L5.5 6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Ouvrir dans Drive
+      </a>
+    </div>
+
+    <div class="sticky-note-wrap">
+      <div class="sticky-note-label">Note</div>
+      <textarea id="brand-note" class="sticky-note-textarea" placeholder="Ajouter une note…"></textarea>
+    </div>
+
+    <div style="padding:18px">
+      <button class="btn-danger" id="btn-del-brand">Supprimer cette marque</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ SHEET: PROFILE -->
+<div class="sheet-overlay" id="overlay-profile"></div>
+<div class="sheet" id="sheet-profile" role="dialog" aria-label="Profil">
+  <div class="sheet-handle"></div>
+  <div class="profile-hero">
+    <div class="profile-avatar-wrap" id="profile-avatar-wrap">
+      <div class="profile-avatar" id="profile-avatar">
+        <img id="profile-avatar-img" src="" alt="" style="display:none">
+        <span id="profile-initials">—</span>
+      </div>
+      <div class="avatar-overlay" aria-hidden="true">
+        <svg class="icon" width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <circle cx="9" cy="9" r="3" stroke="white" stroke-width="1.5"/>
+          <path d="M6.5 2H4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-2.5L9 1Z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <input type="file" class="profile-avatar-input" id="upload-avatar" accept="image/*">
+    </div>
+    <div class="profile-info">
+      <div class="profile-name"  id="profile-name">—</div>
+      <div class="profile-email" id="profile-email">—</div>
+      <div class="profile-photo-hint">Appuyer pour changer la photo</div>
+    </div>
+  </div>
+
+  <div class="setting-row">
+    <div>
+      <div class="setting-label">Mode clair</div>
+      <div class="setting-sub">Basculer entre sombre et clair</div>
+    </div>
+    <label class="theme-switch">
+      <input type="checkbox" id="theme-toggle">
+      <div class="theme-track"></div>
+      <div class="theme-thumb">
+        <svg class="icon theme-icon theme-icon-moon" width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+          <path d="M9.2 7.8A5 5 0 0 1 3.2 1.8a4.5 4.5 0 1 0 6 6Z" fill="currentColor" style="color:var(--text-2)"/>
+        </svg>
+        <svg class="icon theme-icon theme-icon-sun" width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+          <circle cx="5.5" cy="5.5" r="1.9" fill="currentColor" style="color:var(--text-2)"/>
+          <line x1="5.5" y1=".4"  x2="5.5" y2="1.8"  stroke="currentColor" stroke-width="1.1" stroke-linecap="round" style="color:var(--text-2)"/>
+          <line x1="5.5" y1="9.2" x2="5.5" y2="10.6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" style="color:var(--text-2)"/>
+          <line x1=".4"  y1="5.5" x2="1.8"  y2="5.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" style="color:var(--text-2)"/>
+          <line x1="9.2" y1="5.5" x2="10.6" y2="5.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" style="color:var(--text-2)"/>
+          <line x1="1.9" y1="1.9" x2="2.9"  y2="2.9" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" style="color:var(--text-2)"/>
+          <line x1="8.1" y1="8.1" x2="9.1"  y2="9.1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" style="color:var(--text-2)"/>
+          <line x1="9.1" y1="1.9" x2="8.1"  y2="2.9" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" style="color:var(--text-2)"/>
+          <line x1="2.9" y1="8.1" x2="1.9"  y2="9.1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" style="color:var(--text-2)"/>
+        </svg>
+      </div>
+    </label>
+  </div>
+
+  <div class="setting-row">
+    <div>
+      <div class="setting-label">Données</div>
+      <div class="setting-sub" id="profile-sync-info">Google Drive · appdata</div>
+    </div>
+    <svg class="icon" width="20" height="14" viewBox="0 0 20 14" fill="none" aria-hidden="true">
+      <path d="M5.5 12.5a4 4 0 0 1-.4-7.96A5 5 0 0 1 14.5 6h.5a3 3 0 0 1 0 6H5.5Z" stroke="var(--muted)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <div class="setting-row" style="border:none">
+    <div>
+      <div class="setting-label">Version</div>
+      <div class="setting-sub">Shooting Manager v5.0</div>
+    </div>
+    <span style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)">Lancelot</span>
+  </div>
+
+  <button class="btn-danger" id="btn-logout" style="margin-top:14px">Se déconnecter</button>
+</div>
+
+<!-- ============================================================ SHEET: NEW SHOOTING -->
+<div class="sheet-overlay" id="overlay-shooting"></div>
+<div class="sheet" id="sheet-shooting" role="dialog" aria-label="Nouveau shooting">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Nouveau shooting</div>
+  <div class="input-group">
+    <label class="input-label" for="inp-shooting-name">Nom du shooting</label>
+    <input class="input-field" id="inp-shooting-name" type="text" placeholder="ELLE Arabia - Winter 2025…" maxlength="80" autocomplete="off">
+  </div>
+  <div class="input-group">
+    <label class="input-label" for="inp-shooting-date">Date</label>
+    <div style="position:relative">
+      <input class="input-field" id="inp-shooting-date" type="date" style="color:var(--text)">
+      <span id="date-placeholder" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none;transition:opacity .15s">Sélectionner une date</span>
+    </div>
+  </div>
+  <div class="input-group">
+    <label class="input-label" for="inp-shooting-notes">Notes (optionnel)</label>
+    <input class="input-field" id="inp-shooting-notes" type="text" placeholder="Studio Bastille, équipe de 5…" maxlength="120" autocomplete="off">
+  </div>
+  <button class="btn-primary" id="btn-create-shooting">Créer le shooting</button>
+</div>
+
+<!-- ============================================================ SHEET: NEW BRAND -->
+<div class="sheet-overlay" id="overlay-brand"></div>
+<div class="sheet" id="sheet-brand" role="dialog" aria-label="Ajouter une marque">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Ajouter une marque</div>
+  <div class="input-group">
+    <label class="input-label" for="inp-brand-name">Nom de la marque</label>
+    <input class="input-field" id="inp-brand-name" type="text" placeholder="LANVIN, Drôle de Monsieur…" maxlength="60" autocomplete="off">
+  </div>
+  <div class="input-group">
+    <div class="input-label">Type de renvoi</div>
+    <div class="rt-select" role="group" aria-label="Type de renvoi">
+      <button class="rt-btn" data-rt="coursier">Coursier</button>
+      <button class="rt-btn" data-rt="drop">Drop</button>
+    </div>
+  </div>
+  <div class="section-divider">Adresse de retour (optionnel)</div>
+  <div class="input-group">
+    <label class="input-label" for="inp-brand-rue">Rue</label>
+    <input class="input-field" id="inp-brand-rue" type="text" placeholder="157 rue du Temple…" maxlength="100" autocomplete="off">
+  </div>
+  <div class="input-row">
+    <div class="input-group" style="margin-bottom:0">
+      <label class="input-label" for="inp-brand-ville">Ville</label>
+      <input class="input-field" id="inp-brand-ville" type="text" placeholder="Paris" maxlength="60" autocomplete="off">
+    </div>
+    <div class="input-group" style="margin-bottom:0">
+      <label class="input-label" for="inp-brand-cp">Code postal</label>
+      <input class="input-field" id="inp-brand-cp" type="text" placeholder="75003" maxlength="10" autocomplete="off">
+    </div>
+  </div>
+  <button class="btn-primary" id="btn-create-brand" style="margin-top:18px">Ajouter la marque</button>
+</div>
+
+<!-- Global UI -->
+<div id="toast" role="status" aria-live="polite"></div>
+<div class="loader-overlay" id="loader" aria-hidden="true">
+  <div class="spinner"></div>
+  <p id="loader-text">Chargement</p>
+</div>
+<div id="desktop-right-welcome">
+  <div class="drw-line"></div>
+  <div class="drw-text">Sélectionnez un shooting</div>
+  <div class="drw-line"></div>
+</div>
+
+</div><!-- #app-panel -->
+</div><!-- #app-shell -->
+
+<!-- Modules JS (ordre de chargement = ordre des dépendances) -->
+<script src="assets/js/config.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/drive.js"></script>
+<script src="assets/js/db.js"></script>
+<script src="assets/js/shoots.js"></script>
+<script src="assets/js/brands.js"></script>
+<script src="assets/js/photos.js"></script>
+<script src="assets/js/app.js"></script>
+
+</body>
+</html>
